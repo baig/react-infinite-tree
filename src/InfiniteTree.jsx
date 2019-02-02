@@ -56,34 +56,34 @@ export default class extends Component {
 
         // Controls the scroll offset.
         scrollOffset: PropTypes.number,
-        
+
         // Node index to scroll to.
         scrollToIndex: PropTypes.number,
-        
+
         // Callback invoked whenever the scroll offset changes.
         onScroll: PropTypes.func,
 
         // Callback invoked before updating the tree.
         onContentWillUpdate: PropTypes.func,
-        
+
         // Callback invoked when the tree is updated.
         onContentDidUpdate: PropTypes.func,
-        
+
         // Callback invoked when a node is opened.
         onOpenNode: PropTypes.func,
-        
+
         // Callback invoked when a node is closed.
         onCloseNode: PropTypes.func,
-        
+
         // Callback invoked when a node is selected or deselected.
         onSelectNode: PropTypes.func,
-        
+
         // Callback invoked before opening a node.
         onWillOpenNode: PropTypes.func,
-        
+
         // Callback invoked before closing a node.
         onWillCloseNode: PropTypes.func,
-        
+
         // Callback invoked before selecting or deselecting a node.
         onWillSelectNode: PropTypes.func
     };
@@ -114,6 +114,8 @@ export default class extends Component {
     componentDidMount() {
         const { children, className, style, ...options } = this.props;
 
+        console.log(options.data);
+
         if (options.el !== undefined) {
             delete options.el;
         }
@@ -121,6 +123,8 @@ export default class extends Component {
         options.rowRenderer = () => '';
 
         this.tree = new InfiniteTree(options);
+
+        console.log(this.tree);
 
         // Filters nodes.
         // https://github.com/cheton/infinite-tree/wiki/Functions:-Tree#filterpredicate-options
@@ -177,14 +181,10 @@ export default class extends Component {
         };
 
         // Updates the tree.
-        this.tree.update = () => {
-            this.tree.emit('contentWillUpdate');
-            this.setState(state => ({
-                nodes: this.tree.nodes
-            }), () => {
-                this.tree.emit('contentDidUpdate');
-            });
-        };
+        this.tree.emit('contentWillUpdate');
+        this.forceUpdate(() => {
+            this.tree.emit('contentDidUpdate');
+        });
 
         Object.keys(this.eventHandlers).forEach(key => {
             if (!this.props[key]) {
@@ -196,6 +196,14 @@ export default class extends Component {
             this.tree.on(eventName, this.eventHandlers[key]);
         });
     }
+
+    // componentDidUpdate(prevProps) {
+    //     // Typical usage (don't forget to compare props):
+    //     if (this.props.userID !== prevProps.userID) {
+    //         this.fetchData(this.props.userID);
+    //     }
+    // }
+
     componentWillUnmount() {
         Object.keys(this.eventHandlers).forEach(key => {
             if (!this.eventHandlers[key]) {
@@ -239,13 +247,9 @@ export default class extends Component {
             ...props
         } = this.props;
 
-        const render = (typeof children === 'function')
-            ? children
-            : rowRenderer;
-
-        const count = this.tree
-            ? this.tree.nodes.length
-            : 0;
+        const render = typeof children === 'function' ? children : rowRenderer;
+        const count = this.tree ? this.tree.nodes.length : 0;
+        // console.log('render', render);
 
         // VirtualList
         const virtualListProps = {};
@@ -258,6 +262,8 @@ export default class extends Component {
         if (typeof onScroll === 'function') {
             virtualListProps.onScroll = onScroll;
         }
+
+        console.log(this.tree);
 
         return (
             <div
@@ -302,6 +308,7 @@ export default class extends Component {
                                 });
                             }
                         }
+                        console.log('row', row);
 
                         return (
                             <div key={index} style={style}>
